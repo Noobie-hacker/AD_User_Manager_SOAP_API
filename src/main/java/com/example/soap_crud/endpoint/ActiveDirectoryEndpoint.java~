@@ -1,0 +1,59 @@
+package com.example.soap_crud.endpoint;
+
+import org.springframework.ws.server.endpoint.annotation.Endpoint;
+import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
+import org.springframework.ws.server.endpoint.annotation.RequestPayload;
+import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
+
+import com.example.adservice.*; // Generated package
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Endpoint
+public class ActiveDirectoryEndpoint {
+
+    private static final String NAMESPACE_URI = "http://example.com/adservice";
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getAllUsersRequest")
+    @ResponsePayload
+    public GetAllUsersResponse getAllUsers() {
+        GetAllUsersResponse response = new GetAllUsersResponse();
+        List<User> users = new ArrayList<>();
+
+        // Fetch all users from Active Directory
+        User user = new User();
+        user.setSamAccountName("jdoe");
+        user.setDistinguishedName("CN=John Doe,OU=Users,DC=example,DC=com");
+        user.setUserPrincipalName("jdoe@example.com");
+        user.setObjectGUID("550e8400-e29b-41d4-a716-446655440000");
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setEmail("jdoe@example.com");
+        user.getMemberOf().add("CN=Admins,OU=Groups,DC=example,DC=com");
+
+        users.add(user);
+        response.getUsers().addAll(users);
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getUserDetailsRequest")
+    @ResponsePayload
+    public GetUserDetailsResponse getUserDetails(@RequestPayload GetUserDetailsRequest request) {
+        GetUserDetailsResponse response = new GetUserDetailsResponse();
+
+        // Fetch user details from Active Directory using samAccountName
+        User user = new User();
+        user.setSamAccountName(request.getSamAccountName());
+        user.setDistinguishedName("CN=John Doe,OU=Users,DC=example,DC=com");
+        user.setUserPrincipalName("jdoe@example.com");
+        user.setObjectGUID("550e8400-e29b-41d4-a716-446655440000");
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setEmail("jdoe@example.com");
+        user.getMemberOf().add("CN=Admins,OU=Groups,DC=example,DC=com");
+
+        response.setUser(user);
+        return response;
+    }
+}

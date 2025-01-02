@@ -1,4 +1,4 @@
-package com.example.soap_crud.service;
+package com.example.soap_crud;
 
 import com.example.adservice.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +13,15 @@ import java.util.List;
 @Service
 public class ActiveDirectoryService {
 
+    private final LdapTemplate ldapTemplate;
+
     @Autowired
-    private LdapTemplate ldapTemplate;
+    public ActiveDirectoryService(LdapTemplate ldapTemplate) {
+        if (ldapTemplate == null) {
+            throw new IllegalArgumentException("LdapTemplate must not be null!");
+        }
+        this.ldapTemplate = ldapTemplate;
+    }
 
     public List<User> getAllUsers() {
         return ldapTemplate.search("", "(objectClass=user)", new UserAttributesMapper());
@@ -25,31 +32,21 @@ public class ActiveDirectoryService {
         return users.isEmpty() ? null : users.get(0);
     }
 
-    // Updated UserAttributesMapper as a private static inner class
     private static class UserAttributesMapper implements AttributesMapper<User> {
         @Override
         public User mapFromAttributes(Attributes attrs) throws NamingException {
             User user = new User();
-
-            user.setSamAccountName(getAttributeValue(attrs, "sAMAccountName"));
-            user.setDistinguishedName(getAttributeValue(attrs, "distinguishedName"));
-            user.setUserPrincipalName(getAttributeValue(attrs, "userPrincipalName"));
-            user.setObjectGUID(getAttributeValue(attrs, "objectGUID"));
-            user.setFirstName(getAttributeValue(attrs, "givenName"));
-            user.setLastName(getAttributeValue(attrs, "sn"));
-            user.setEmail(getAttributeValue(attrs, "mail"));
-
+            user.setSamAccountName((String) attrs.get("sAMAccountName").get());
+            user.setDistinguishedName((String) attrs.get("distinguishedName").get());
+            user.setUserPrincipalName((String) attrs.get("userPrincipalName").get());
+            user.setObjectGUID(attrs.get("objectGUID").get().toString());
+            user.setFirstName(attrs.get("givenName") != null ? (String) attrs.get("givenName").get() : "");
+            user.setLastName(attrs.get("sn") != null ? (String) attrs.get("sn").get() : "");
+            user.setEmail(attrs.get("mail") != null ? (String) attrs.get("mail").get() : "");
             if (attrs.get("memberOf") != null) {
-                for (int i = 0; i < attrs.get("memberOf").size(); i++) {
-                    user.getMemberOf().add(attrs.get("memberOf").get(i).toString());
-                }
+                user.getMemberOf().add(attrs.get("memberOf").get().toString());
             }
-
             return user;
-        }
-
-        private String getAttributeValue(Attributes attrs, String attributeName) throws NamingException {
-            return attrs.get(attributeName) != null ? (String) attrs.get(attributeName).get() : "";
         }
     }
 }

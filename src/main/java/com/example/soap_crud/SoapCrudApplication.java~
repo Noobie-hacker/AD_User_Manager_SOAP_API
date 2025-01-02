@@ -1,13 +1,11 @@
-package com.example.soap_crud;
+package com.example.soap_crud.service.;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SoapCrudApplication {
-
+public class SoapServiceApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(SoapCrudApplication.class, args);
+		SpringApplication.run(SoapServiceApplication.class, args);
 	}
-
 }

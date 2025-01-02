@@ -4,8 +4,10 @@
            targetNamespace="http://example.com/adservice"
            elementFormDefault="qualified">
 
+    <!-- Request to get all users -->
     <xs:element name="getAllUsersRequest" />
 
+    <!-- Response to get all users -->
     <xs:element name="getAllUsersResponse">
         <xs:complexType>
             <xs:sequence>
@@ -14,6 +16,7 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Request to get user details -->
     <xs:element name="getUserDetailsRequest">
         <xs:complexType>
             <xs:sequence>
@@ -22,6 +25,7 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Response to get user details -->
     <xs:element name="getUserDetailsResponse">
         <xs:complexType>
             <xs:sequence>
@@ -30,6 +34,7 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- User complex type -->
     <xs:complexType name="user">
         <xs:sequence>
             <xs:element name="samAccountName" type="xs:string" />

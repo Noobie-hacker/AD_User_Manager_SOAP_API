@@ -1,4 +1,4 @@
-package com.example.soap_crud;
+package com.example.soap_crud.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -25,7 +25,7 @@ import jakarta.xml.bind.annotation.XmlType;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="cn" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="status" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -36,36 +36,36 @@ import jakarta.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "cn"
+    "status"
 })
-@XmlRootElement(name = "getUserDetailsRequest")
-public class GetUserDetailsRequest {
+@XmlRootElement(name = "disableUserResponse")
+public class DisableUserResponse {
 
     @XmlElement(required = true)
-    protected String cn;
+    protected String status;
 
     /**
-     * Gets the value of the cn property.
+     * Gets the value of the status property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getCn() {
-        return cn;
+    public String getStatus() {
+        return status;
     }
 
     /**
-     * Sets the value of the cn property.
+     * Sets the value of the status property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setCn(String value) {
-        this.cn = value;
+    public void setStatus(String value) {
+        this.status = value;
     }
 
 }

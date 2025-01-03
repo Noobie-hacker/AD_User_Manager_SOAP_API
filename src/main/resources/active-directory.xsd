@@ -4,8 +4,10 @@
            targetNamespace="http://example.com/adservice"
            elementFormDefault="qualified">
 
-    <xs:element name="getAllUsersRequest" />
-
+    <!-- Request and Response Elements for Get All Users -->
+    <xs:element name="getAllUsersRequest">
+        <xs:complexType />
+    </xs:element>
     <xs:element name="getAllUsersResponse">
         <xs:complexType>
             <xs:sequence>
@@ -14,14 +16,15 @@
         </xs:complexType>
     </xs:element>
 
+
+    <!-- Request and Response Elements for Get User Details -->
     <xs:element name="getUserDetailsRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="samAccountName" type="xs:string" />
+                <xs:element name="cn" type="xs:string" />
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-
     <xs:element name="getUserDetailsResponse">
         <xs:complexType>
             <xs:sequence>
@@ -30,8 +33,139 @@
         </xs:complexType>
     </xs:element>
 
+
+    <!-- New Elements -->
+    <xs:element name="createUserRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="user" type="tns:user" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="createUserResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="updateUserRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="user" type="tns:user" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="updateUserResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deleteUserRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cn" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deleteUserResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="enableUserRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cn" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="enableUserResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="disableUserRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cn" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="disableUserResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getAllGroupsRequest">
+        <xs:complexType />
+    </xs:element>
+
+    <xs:element name="getAllGroupsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="groups" type="xs:string" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+
+    <xs:element name="addUserToGroupsRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cn" type="xs:string" />
+                <xs:element name="groups" type="xs:string" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="addUserToGroupsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="removeUserFromGroupsRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cn" type="xs:string" />
+                <xs:element name="groups" type="xs:string" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="removeUserFromGroupsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- User Complex Type -->
     <xs:complexType name="user">
         <xs:sequence>
+            <xs:element name="cn" type="xs:string" />
             <xs:element name="samAccountName" type="xs:string" />
             <xs:element name="distinguishedName" type="xs:string" />
             <xs:element name="userPrincipalName" type="xs:string" />

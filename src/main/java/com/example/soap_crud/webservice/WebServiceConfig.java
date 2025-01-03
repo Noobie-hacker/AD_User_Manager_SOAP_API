@@ -12,7 +12,7 @@ import org.springframework.xml.xsd.XsdSchema;
 
 @EnableWs
 @Configuration
-public class  WebServiceConfig {
+public class WebServiceConfig {
 
     @Bean
     public ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext applicationContext) {
@@ -34,6 +34,7 @@ public class  WebServiceConfig {
 
     @Bean
     public XsdSchema activeDirectorySchema() {
+        // Ensure the XSD includes definitions for the new operations.
         return new SimpleXsdSchema(new org.springframework.core.io.ClassPathResource("active-directory.xsd"));
     }
 }

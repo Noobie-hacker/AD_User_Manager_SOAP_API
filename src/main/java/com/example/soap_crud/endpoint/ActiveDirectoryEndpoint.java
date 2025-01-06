@@ -76,10 +76,16 @@ public class ActiveDirectoryEndpoint {
     @ResponsePayload
     public DisableUserResponse disableUser(@RequestPayload DisableUserRequest request) {
         DisableUserResponse response = new DisableUserResponse();
-        boolean success = Boolean.parseBoolean(adService.disableUserByCn(request.getCn()));
-        response.setStatus(success ? "User disabled successfully." : "Failed to disable user.");
+        String result = adService.disableUserByCn(request.getCn());
+
+        if (result.startsWith("User disabled successfully")) {
+            response.setStatus("User disabled successfully.");
+        } else {
+            response.setStatus(result); // Include the exact error message for debugging
+        }
         return response;
     }
+
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getAllGroupsRequest")
     @ResponsePayload

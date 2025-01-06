@@ -72,24 +72,38 @@ public class ActiveDirectoryService {
     }
 
     public String enableUserByCn(String cn) {
-        try {
-            DirContextOperations context = ldapTemplate.lookupContext("cn=" + cn);
-            context.setAttributeValue("userAccountControl", "512"); // Normal account
-            ldapTemplate.modifyAttributes(context);
-            return "User enabled successfully: " + cn;
-        } catch (Exception e) {
-            return "Error enabling user: " + e.getMessage();
-        }
+        return setUserAccountControl(cn, 512); // Enable user account
     }
 
     public String disableUserByCn(String cn) {
         try {
+            // Lookup the context of the user in AD
             DirContextOperations context = ldapTemplate.lookupContext("cn=" + cn);
-            context.setAttributeValue("userAccountControl", "514"); // Disabled account
+
+            // Set the 'userAccountControl' attribute to disable the user
+            context.setAttributeValue("userAccountControl", "514"); // 514 = Disabled account
             ldapTemplate.modifyAttributes(context);
+
+            // Return success message
             return "User disabled successfully: " + cn;
         } catch (Exception e) {
-            return "Error disabling user: " + e.getMessage();
+            // Log the error for debugging
+            System.err.println("Error disabling user: " + e.getMessage());
+
+            // Return failure message
+            return "Failed to disable user: " + e.getMessage();
+        }
+    }
+
+
+    private String setUserAccountControl(String cn, int controlValue) {
+        try {
+            DirContextOperations context = ldapTemplate.lookupContext("cn=" + cn);
+            context.setAttributeValue("userAccountControl", String.valueOf(controlValue));
+            ldapTemplate.modifyAttributes(context);
+            return "User account control updated successfully for: " + cn;
+        } catch (Exception e) {
+            return "Error updating user account control: " + e.getMessage();
         }
     }
 
@@ -128,7 +142,6 @@ public class ActiveDirectoryService {
         }
     }
 
-    // Updated UserAttributesMapper as a private static inner class
     private static class UserAttributesMapper implements AttributesMapper<User> {
         @Override
         public User mapFromAttributes(Attributes attrs) throws NamingException {
@@ -138,7 +151,11 @@ public class ActiveDirectoryService {
             user.setSamAccountName(getAttributeValue(attrs, "sAMAccountName"));
             user.setDistinguishedName(getAttributeValue(attrs, "distinguishedName"));
             user.setUserPrincipalName(getAttributeValue(attrs, "userPrincipalName"));
-            user.setObjectGUID(getAttributeValue(attrs, "objectGUID"));
+
+            // Convert objectGUID to UUID
+            byte[] objectGUIDBytes = attrs.get("objectGUID") != null ? (byte[]) attrs.get("objectGUID").get() : null;
+            user.setObjectGUID(convertObjectGUIDToUUID(objectGUIDBytes));
+
             user.setFirstName(getAttributeValue(attrs, "givenName"));
             user.setLastName(getAttributeValue(attrs, "sn"));
             user.setEmail(getAttributeValue(attrs, "mail"));
@@ -154,6 +171,19 @@ public class ActiveDirectoryService {
 
         private String getAttributeValue(Attributes attrs, String attributeName) throws NamingException {
             return attrs.get(attributeName) != null ? (String) attrs.get(attributeName).get() : "";
+        }
+
+        private String convertObjectGUIDToUUID(byte[] objectGUID) {
+            if (objectGUID == null || objectGUID.length != 16) {
+                return null;
+            }
+
+            return String.format("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                    objectGUID[3], objectGUID[2], objectGUID[1], objectGUID[0],
+                    objectGUID[5], objectGUID[4],
+                    objectGUID[7], objectGUID[6],
+                    objectGUID[8], objectGUID[9],
+                    objectGUID[10], objectGUID[11], objectGUID[12], objectGUID[13], objectGUID[14], objectGUID[15]);
         }
     }
 }

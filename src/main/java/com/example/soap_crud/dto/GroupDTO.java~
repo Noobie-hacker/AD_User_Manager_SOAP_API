@@ -1,4 +1,0 @@
-package com.example.soap_crud.dto;
-
-public class GroupDTO {
-}

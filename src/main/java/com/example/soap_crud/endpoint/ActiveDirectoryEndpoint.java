@@ -49,10 +49,19 @@ public class ActiveDirectoryEndpoint {
     @ResponsePayload
     public UpdateUserResponse updateUser(@RequestPayload UpdateUserRequest request) {
         UpdateUserResponse response = new UpdateUserResponse();
-        boolean success = Boolean.parseBoolean(adService.updateUser(request.getUser()));
-        response.setStatus(success ? "User updated successfully." : "Failed to update user.");
+
+        try {
+            // Call the updated service method for updating user
+            adService.updateUser(request.getUser());
+            response.setStatus("User updated successfully.");
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the error for debugging
+            response.setStatus("Failed to update user: " + e.getMessage());
+        }
+
         return response;
     }
+
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "deleteUserRequest")
     @ResponsePayload
@@ -76,16 +85,10 @@ public class ActiveDirectoryEndpoint {
     @ResponsePayload
     public DisableUserResponse disableUser(@RequestPayload DisableUserRequest request) {
         DisableUserResponse response = new DisableUserResponse();
-        String result = adService.disableUserByCn(request.getCn());
-
-        if (result.startsWith("User disabled successfully")) {
-            response.setStatus("User disabled successfully.");
-        } else {
-            response.setStatus(result); // Include the exact error message for debugging
-        }
+        boolean success = Boolean.parseBoolean(adService.disableUserByCn(request.getCn()));
+        response.setStatus(success ? "User disabled successfully." : "Failed to disable user.");
         return response;
     }
-
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getAllGroupsRequest")
     @ResponsePayload
@@ -100,8 +103,12 @@ public class ActiveDirectoryEndpoint {
     @ResponsePayload
     public AddUserToGroupsResponse addUserToGroups(@RequestPayload AddUserToGroupsRequest request) {
         AddUserToGroupsResponse response = new AddUserToGroupsResponse();
-        boolean success = Boolean.parseBoolean(adService.addUserToGroups(request.getCn(), request.getGroups()));
-        response.setStatus(success ? "User added to groups successfully." : "Failed to add user to groups.");
+        try {
+            adService.addUserToGroups(request.getCn(), request.getGroups());
+            response.setStatus("User added to groups successfully.");
+        } catch (Exception e) {
+            response.setStatus("Failed to add user to groups: " + e.getMessage());
+        }
         return response;
     }
 
@@ -109,8 +116,13 @@ public class ActiveDirectoryEndpoint {
     @ResponsePayload
     public RemoveUserFromGroupsResponse removeUserFromGroups(@RequestPayload RemoveUserFromGroupsRequest request) {
         RemoveUserFromGroupsResponse response = new RemoveUserFromGroupsResponse();
-        boolean success = Boolean.parseBoolean(adService.removeUserFromGroups(request.getCn(), request.getGroups()));
-        response.setStatus(success ? "User removed from groups successfully." : "Failed to remove user from groups.");
+        try {
+            adService.removeUserFromGroups(request.getCn(), request.getGroups());
+            response.setStatus("User removed from groups successfully.");
+        } catch (Exception e) {
+            response.setStatus("Failed to remove user from groups: " + e.getMessage());
+        }
         return response;
     }
+
 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import javax.naming.NamingException;
 import javax.naming.directory.*;
+import javax.naming.ldap.LdapContext;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,17 +22,22 @@ public class ActiveDirectoryService {
     private LdapTemplate ldapTemplate;
 
     public List<User> getAllUsers() {
-        return ldapTemplate.search("", "(objectClass=user)", new UserAttributesMapper());
+        String baseDn = "cn=Users,dc=mylab,dc=local"; // Add base DN for search scope
+        return ldapTemplate.search(baseDn, "(objectClass=user)", new UserAttributesMapper());
     }
 
+
     public User getUserDetailsByCn(String cn) {
-        List<User> users = ldapTemplate.search("", "(cn=" + cn + ")", new UserAttributesMapper());
+        String baseDn = "cn=Users,dc=mylab,dc=local"; // Add base DN for search scope
+        List<User> users = ldapTemplate.search(baseDn, "(cn=" + cn + ")", new UserAttributesMapper());
         return users.isEmpty() ? null : users.get(0);
     }
 
+
     public String createUser(User user) {
         try {
-            DirContextAdapter context = new DirContextAdapter();
+            String userDn = "cn=" + user.getCn() + ",cn=Users,dc=mylab,dc=local";
+            DirContextAdapter context = new DirContextAdapter(userDn);
             context.setAttributeValues("objectClass", new String[]{"top", "person", "organizationalPerson", "user"});
             context.setAttributeValue("cn", user.getCn());
             context.setAttributeValue("sAMAccountName", user.getSamAccountName());
@@ -39,35 +46,47 @@ public class ActiveDirectoryService {
             context.setAttributeValue("userPrincipalName", user.getUserPrincipalName());
             context.setAttributeValue("mail", user.getEmail());
 
-            ldapTemplate.bind("cn=" + user.getCn(), context, null);
-            return "User created successfully: " + user.getCn();
+            // Set the password
+            String quotedPassword = "\"" + user.getPassword() + "\"";
+            byte[] passwordBytes = quotedPassword.getBytes(StandardCharsets.UTF_16LE);
+            context.setAttributeValue("unicodePwd", passwordBytes);
+
+            // Set account control (normal account)
+            context.setAttributeValue("userAccountControl", "512");
+
+            ldapTemplate.bind(userDn, context, null);
+            return "true"; // Return "true" on success
         } catch (Exception e) {
-            return "Error creating user: " + e.getMessage();
+            e.printStackTrace();
+            return "false"; // Return "false" on failure
         }
     }
 
-    public String updateUser(User user) {
-        try {
-            DirContextAdapter context = new DirContextAdapter("cn=" + user.getCn());
-            context.setAttributeValues("objectClass", new String[]{"top", "person", "organizationalPerson", "user"});
-            context.setAttributeValue("givenName", user.getFirstName());
-            context.setAttributeValue("sn", user.getLastName());
-            context.setAttributeValue("userPrincipalName", user.getUserPrincipalName());
-            context.setAttributeValue("mail", user.getEmail());
 
-            ldapTemplate.modifyAttributes(context);
-            return "User updated successfully: " + user.getCn();
-        } catch (Exception e) {
-            return "Error updating user: " + e.getMessage();
-        }
+
+
+    public void updateUser(User user) {
+        String userDn = "cn=" + user.getCn() + ",cn=Users,dc=mylab,dc=local";
+
+        // Attributes to update
+        ModificationItem[] mods = {
+                new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("givenName", user.getFirstName())),
+                new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("sn", user.getLastName())),
+                new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("mail", user.getEmail())),
+                new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("userPrincipalName", user.getUserPrincipalName()))
+        };
+
+        ldapTemplate.modifyAttributes(userDn, mods);
     }
+
+
 
     public String deleteUserByCn(String cn) {
         try {
-            ldapTemplate.unbind("cn=" + cn);
-            return "User deleted successfully: " + cn;
+            ldapTemplate.unbind("cn=" + cn + ",cn=Users,dc=mylab,dc=local");
+            return "true"; // Return "true" on success
         } catch (Exception e) {
-            return "Error deleting user: " + e.getMessage();
+            return "false"; // Return "false" on failure
         }
     }
 
@@ -76,71 +95,64 @@ public class ActiveDirectoryService {
     }
 
     public String disableUserByCn(String cn) {
-        try {
-            // Lookup the context of the user in AD
-            DirContextOperations context = ldapTemplate.lookupContext("cn=" + cn);
-
-            // Set the 'userAccountControl' attribute to disable the user
-            context.setAttributeValue("userAccountControl", "514"); // 514 = Disabled account
-            ldapTemplate.modifyAttributes(context);
-
-            // Return success message
-            return "User disabled successfully: " + cn;
-        } catch (Exception e) {
-            // Log the error for debugging
-            System.err.println("Error disabling user: " + e.getMessage());
-
-            // Return failure message
-            return "Failed to disable user: " + e.getMessage();
-        }
+        return setUserAccountControl(cn, 514); // Disable user account
     }
-
 
     private String setUserAccountControl(String cn, int controlValue) {
         try {
-            DirContextOperations context = ldapTemplate.lookupContext("cn=" + cn);
+            DirContextOperations context = ldapTemplate.lookupContext("cn=" + cn + ",cn=Users,dc=mylab,dc=local");
             context.setAttributeValue("userAccountControl", String.valueOf(controlValue));
             ldapTemplate.modifyAttributes(context);
-            return "User account control updated successfully for: " + cn;
+            return "true"; // Ensure "true" is returned on success
         } catch (Exception e) {
-            return "Error updating user account control: " + e.getMessage();
+            return "false"; // Ensure "false" is returned on failure
         }
     }
 
     public List<String> getAllGroups() {
+        String baseDn = "cn=Users,dc=mylab,dc=local"; // Add base DN for search scope
         try {
-            return ldapTemplate.search("", "(objectClass=group)", (AttributesMapper<String>) attrs ->
+            return ldapTemplate.search(baseDn, "(objectClass=group)", (AttributesMapper<String>) attrs ->
                     (String) attrs.get("cn").get());
         } catch (Exception e) {
+            e.printStackTrace();
             return new ArrayList<>();
         }
     }
 
-    public String addUserToGroups(String cn, List<String> groups) {
-        try {
-            for (String group : groups) {
-                ldapTemplate.modifyAttributes("cn=" + group, new ModificationItem[]{
-                        new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute("member", "cn=" + cn))
-                });
-            }
-            return "User added to groups successfully: " + groups;
-        } catch (Exception e) {
-            return "Error adding user to groups: " + e.getMessage();
+
+
+    public void addUserToGroups(String cn, List<String> groups) {
+        String userDn = "cn=" + cn + ",cn=Users,dc=mylab,dc=local";
+
+        for (String group : groups) {
+            String groupDn = "cn=" + group + ",cn=Users,dc=mylab,dc=local";
+
+            ldapTemplate.modifyAttributes(
+                    groupDn,
+                    new ModificationItem[]{
+                            new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute("member", userDn))
+                    }
+            );
         }
     }
 
-    public String removeUserFromGroups(String cn, List<String> groups) {
-        try {
-            for (String group : groups) {
-                ldapTemplate.modifyAttributes("cn=" + group, new ModificationItem[]{
-                        new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute("member", "cn=" + cn))
-                });
-            }
-            return "User removed from groups successfully: " + groups;
-        } catch (Exception e) {
-            return "Error removing user from groups: " + e.getMessage();
+    public void removeUserFromGroups(String cn, List<String> groups) {
+        String userDn = "cn=" + cn + ",cn=Users,dc=mylab,dc=local";
+
+        for (String group : groups) {
+            String groupDn = "cn=" + group + ",cn=Users,dc=mylab,dc=local";
+
+            ldapTemplate.modifyAttributes(
+                    groupDn,
+                    new ModificationItem[]{
+                            new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute("member", userDn))
+                    }
+            );
         }
     }
+
+
 
     private static class UserAttributesMapper implements AttributesMapper<User> {
         @Override

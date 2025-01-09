@@ -53,7 +53,8 @@ import jakarta.xml.bind.annotation.XmlType;
     "firstName",
     "lastName",
     "email",
-    "memberOf"
+    "memberOf",
+    "password"
 })
 public class User {
 
@@ -75,6 +76,7 @@ public class User {
     protected String email;
     @XmlElement(required = true)
     protected List<String> memberOf;
+    protected String password;
 
     /**
      * Gets the value of the cn property.
@@ -297,4 +299,11 @@ public class User {
         return this.memberOf;
     }
 
+    public String getPassword() {
+    return password;
+    }
+
+    public void setPassword(String password) {
+    this.password = password;
+    }
 }

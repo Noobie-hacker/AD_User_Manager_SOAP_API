@@ -4,8 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
-
-import javax.naming.ldap.LdapContext;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +13,7 @@ public class LdapConfig {
     @Bean
     public LdapContextSource contextSource() {
         LdapContextSource contextSource = new LdapContextSource();
-        contextSource.setUrl("ldaps://0.tcp.in.ngrok.io:19793");
+        contextSource.setUrl("ldaps://WIN-KURQEVBDCT8.mylab.local:636");
         //contextSource.setBase("cn=Users,dc=mylab,dc=local");
         contextSource.setUserDn("cn=Administrator,cn=Users,dc=mylab,dc=local");
         contextSource.setPassword("Bappy@2580");
@@ -33,5 +31,6 @@ public class LdapConfig {
     public LdapTemplate ldapTemplate() {
         return new LdapTemplate(contextSource());
     }
+
 }
 
